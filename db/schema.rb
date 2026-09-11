@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_12_000014) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_12_000015) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -255,6 +255,44 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_000014) do
     t.index ["tenant_id"], name: "index_payment_intents_on_tenant_id"
   end
 
+  create_table "payment_refunds", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.decimal "amount", precision: 15, scale: 2, null: false
+    t.datetime "approved_at"
+    t.uuid "approved_by_id"
+    t.datetime "cancelled_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.string "currency", default: "INR", null: false
+    t.datetime "failed_at"
+    t.uuid "fee_payment_id", null: false
+    t.string "idempotency_key", null: false
+    t.jsonb "metadata", default: {}
+    t.text "notes"
+    t.datetime "processed_at"
+    t.string "reason", null: false
+    t.string "refund_reference"
+    t.datetime "rejected_at"
+    t.string "request_hash"
+    t.datetime "requested_at"
+    t.uuid "requested_by_id"
+    t.string "status", default: "requested", null: false
+    t.uuid "student_fee_assignment_id", null: false
+    t.uuid "student_id", null: false
+    t.uuid "tenant_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["approved_by_id"], name: "index_payment_refunds_on_approved_by_id"
+    t.index ["fee_payment_id"], name: "index_payment_refunds_on_fee_payment_id"
+    t.index ["requested_by_id"], name: "index_payment_refunds_on_requested_by_id"
+    t.index ["student_fee_assignment_id"], name: "index_payment_refunds_on_student_fee_assignment_id"
+    t.index ["student_id"], name: "index_payment_refunds_on_student_id"
+    t.index ["tenant_id", "fee_payment_id"], name: "idx_payment_refunds_tenant_payment"
+    t.index ["tenant_id", "idempotency_key"], name: "idx_payment_refunds_tenant_idempotency", unique: true
+    t.index ["tenant_id", "status"], name: "idx_payment_refunds_tenant_status"
+    t.index ["tenant_id", "student_fee_assignment_id"], name: "idx_payment_refunds_tenant_assignment"
+    t.index ["tenant_id", "student_id"], name: "idx_payment_refunds_tenant_student"
+    t.index ["tenant_id"], name: "index_payment_refunds_on_tenant_id"
+  end
+
   create_table "permissions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description"
@@ -464,6 +502,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_000014) do
   add_foreign_key "payment_intents", "students", on_delete: :cascade
   add_foreign_key "payment_intents", "tenants", on_delete: :cascade
   add_foreign_key "payment_intents", "users", column: "created_by_id", on_delete: :nullify
+  add_foreign_key "payment_refunds", "fee_payments", on_delete: :restrict
+  add_foreign_key "payment_refunds", "student_fee_assignments", on_delete: :restrict
+  add_foreign_key "payment_refunds", "students", on_delete: :cascade
+  add_foreign_key "payment_refunds", "tenants", on_delete: :cascade
+  add_foreign_key "payment_refunds", "users", column: "approved_by_id", on_delete: :nullify
+  add_foreign_key "payment_refunds", "users", column: "requested_by_id", on_delete: :nullify
   add_foreign_key "refresh_tokens", "users", on_delete: :cascade
   add_foreign_key "role_permissions", "permissions", on_delete: :cascade
   add_foreign_key "role_permissions", "roles", on_delete: :cascade

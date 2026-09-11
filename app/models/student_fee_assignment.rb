@@ -7,13 +7,22 @@ class StudentFeeAssignment < ApplicationRecord
   belongs_to :fee_plan
   has_many :fee_payments, dependent: :restrict_with_error
   has_many :payment_intents, dependent: :destroy
+  has_many :payment_refunds, class_name: "PaymentRefund", dependent: :restrict_with_error
 
   def total_paid_amount
     fee_payments.where(status: "completed").sum(:amount)
   end
 
+  def total_refunded_amount
+    payment_refunds.where(status: "completed").sum(:amount)
+  end
+
+  def net_paid_amount
+    [ total_paid_amount - total_refunded_amount, BigDecimal("0.0") ].max
+  end
+
   def outstanding_amount
-    [ total_amount - total_paid_amount, BigDecimal("0.0") ].max
+    [ total_amount - net_paid_amount, BigDecimal("0.0") ].max
   end
 
   before_validation :copy_fee_plan_snapshot, on: :create

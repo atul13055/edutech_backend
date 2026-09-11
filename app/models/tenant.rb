@@ -15,6 +15,7 @@ class Tenant < ApplicationRecord
   has_many :fee_payment_allocations, dependent: :destroy
   has_many :payment_intents, dependent: :destroy
   has_many :webhook_events, dependent: :destroy
+  has_many :payment_refunds, class_name: "PaymentRefund", dependent: :destroy
   has_one :wallet, dependent: :destroy
   has_many :wallet_transactions, dependent: :destroy
 
