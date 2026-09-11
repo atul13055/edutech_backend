@@ -4,6 +4,7 @@ class Course < ApplicationRecord
   belongs_to :tenant, optional: true
 
   has_many :batches, dependent: :restrict_with_error
+  has_many :fee_plans, dependent: :nullify
 
   before_validation :normalize_attributes
 

@@ -7,6 +7,7 @@ class Admission < ApplicationRecord
   belongs_to :course, -> { unscope(where: :tenant_id) }
   belongs_to :batch, optional: true
   belongs_to :counselor, class_name: "User", optional: true
+  has_many :fee_assignments, class_name: "StudentFeeAssignment", dependent: :nullify
 
   before_validation :generate_admission_number, on: :create
   before_validation :normalize_attributes

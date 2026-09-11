@@ -4,6 +4,7 @@ class Student < ApplicationRecord
   belongs_to :tenant
   belongs_to :user, optional: true
   has_many :admissions, dependent: :destroy
+  has_many :fee_assignments, class_name: "StudentFeeAssignment", dependent: :destroy
 
   before_validation :normalize_attributes
 

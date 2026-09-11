@@ -8,6 +8,9 @@ class Tenant < ApplicationRecord
   has_many :leads, dependent: :destroy
   has_many :lead_follow_ups, dependent: :destroy
   has_many :admissions, dependent: :destroy
+  has_many :fee_plans, dependent: :destroy
+  has_many :fee_installments, dependent: :destroy
+  has_many :student_fee_assignments, dependent: :destroy
   has_one :wallet, dependent: :destroy
   has_many :wallet_transactions, dependent: :destroy
 
