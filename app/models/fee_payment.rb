@@ -11,6 +11,17 @@ class FeePayment < ApplicationRecord
 
   has_many :fee_payment_allocations, dependent: :destroy
   has_one :payment_intent, dependent: :nullify
+  has_many :refunds, class_name: "PaymentRefund", dependent: :restrict_with_error
+
+  def total_refunded_amount
+    refunds.where(status: "completed").sum(:amount)
+  end
+
+  def refundable_amount
+    return BigDecimal("0.0") unless status == "completed"
+
+    [ amount - total_refunded_amount, BigDecimal("0.0") ].max
+  end
 
   before_validation :normalize_attributes
 

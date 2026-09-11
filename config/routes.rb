@@ -34,6 +34,10 @@ Rails.application.routes.draw do
         resources :payment_intents, only: [ :index, :show, :create ] do
           post :reconcile, on: :member
         end
+        resources :payment_refunds, only: [ :index, :show, :create ] do
+          post :approve, on: :member
+          post :process_refund, on: :member, path: "process"
+        end
         resource :wallet, only: [ :show ] do
           post :credit
           post :debit
