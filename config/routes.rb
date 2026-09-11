@@ -31,12 +31,17 @@ Rails.application.routes.draw do
           resources :payments, controller: "fee_payments", only: [ :index ]
         end
         resources :fee_payments, only: [ :index, :show, :create ]
+        resources :payment_intents, only: [ :index, :show, :create ] do
+          post :reconcile, on: :member
+        end
         resource :wallet, only: [ :show ] do
           post :credit
           post :debit
           resources :transactions, controller: "wallet_transactions", only: [ :index, :show ]
         end
       end
+
+      post "webhooks/payments", to: "webhooks#receive"
     end
   end
 end

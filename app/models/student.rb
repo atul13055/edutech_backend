@@ -6,6 +6,7 @@ class Student < ApplicationRecord
   has_many :admissions, dependent: :destroy
   has_many :fee_assignments, class_name: "StudentFeeAssignment", dependent: :destroy
   has_many :fee_payments, dependent: :destroy
+  has_many :payment_intents, dependent: :destroy
 
   before_validation :normalize_attributes
 

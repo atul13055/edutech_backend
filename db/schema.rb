@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_11_000013) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_12_000014) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -213,6 +213,48 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000013) do
     t.index ["tenant_id"], name: "index_leads_on_tenant_id"
   end
 
+  create_table "payment_intents", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.decimal "amount", precision: 15, scale: 2, null: false
+    t.string "client_reference"
+    t.datetime "created_at", null: false
+    t.uuid "created_by_id"
+    t.string "currency", default: "INR", null: false
+    t.datetime "expires_at"
+    t.datetime "failed_at"
+    t.string "failure_code"
+    t.text "failure_message"
+    t.uuid "fee_installment_id"
+    t.uuid "fee_payment_id"
+    t.string "idempotency_key", null: false
+    t.jsonb "metadata", default: {}
+    t.string "payment_method", null: false
+    t.string "provider_name"
+    t.string "provider_order_id"
+    t.string "provider_status"
+    t.string "provider_transaction_id"
+    t.datetime "reconciled_at"
+    t.string "request_hash"
+    t.string "status", default: "created", null: false
+    t.uuid "student_fee_assignment_id", null: false
+    t.uuid "student_id", null: false
+    t.datetime "succeeded_at"
+    t.uuid "tenant_id", null: false
+    t.datetime "unknown_at"
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_payment_intents_on_created_by_id"
+    t.index ["fee_installment_id"], name: "index_payment_intents_on_fee_installment_id"
+    t.index ["fee_payment_id"], name: "index_payment_intents_on_fee_payment_id"
+    t.index ["provider_name", "provider_order_id"], name: "idx_payment_intents_provider_order"
+    t.index ["provider_name", "provider_transaction_id"], name: "idx_payment_intents_provider_tx"
+    t.index ["student_fee_assignment_id"], name: "index_payment_intents_on_student_fee_assignment_id"
+    t.index ["student_id"], name: "index_payment_intents_on_student_id"
+    t.index ["tenant_id", "idempotency_key"], name: "idx_payment_intents_tenant_idempotency", unique: true
+    t.index ["tenant_id", "status"], name: "idx_payment_intents_tenant_status"
+    t.index ["tenant_id", "student_fee_assignment_id"], name: "idx_payment_intents_tenant_assignment"
+    t.index ["tenant_id", "student_id"], name: "idx_payment_intents_tenant_student"
+    t.index ["tenant_id"], name: "index_payment_intents_on_tenant_id"
+  end
+
   create_table "permissions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description"
@@ -366,6 +408,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000013) do
     t.check_constraint "balance >= 0::numeric", name: "wallets_balance_non_negative"
   end
 
+  create_table "webhook_events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "event_type", null: false
+    t.text "failure_reason"
+    t.string "payload_hash", null: false
+    t.uuid "payment_intent_id"
+    t.datetime "processed_at"
+    t.string "processing_status", default: "received", null: false
+    t.string "provider_event_id", null: false
+    t.string "provider_name", null: false
+    t.jsonb "raw_payload", default: {}
+    t.boolean "signature_verified", default: false, null: false
+    t.uuid "tenant_id"
+    t.datetime "updated_at", null: false
+    t.index ["payment_intent_id"], name: "index_webhook_events_on_payment_intent_id"
+    t.index ["provider_name", "provider_event_id"], name: "idx_webhook_events_provider_event", unique: true
+    t.index ["tenant_id", "processing_status"], name: "idx_webhook_events_tenant_status"
+    t.index ["tenant_id"], name: "index_webhook_events_on_tenant_id"
+  end
+
   add_foreign_key "admissions", "batches", on_delete: :nullify
   add_foreign_key "admissions", "courses", on_delete: :cascade
   add_foreign_key "admissions", "leads", on_delete: :nullify
@@ -396,6 +458,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000013) do
   add_foreign_key "leads", "courses", column: "interested_course_id", on_delete: :nullify
   add_foreign_key "leads", "tenants", on_delete: :cascade
   add_foreign_key "leads", "users", column: "assigned_to_id", on_delete: :nullify
+  add_foreign_key "payment_intents", "fee_installments", on_delete: :restrict
+  add_foreign_key "payment_intents", "fee_payments", on_delete: :restrict
+  add_foreign_key "payment_intents", "student_fee_assignments", on_delete: :restrict
+  add_foreign_key "payment_intents", "students", on_delete: :cascade
+  add_foreign_key "payment_intents", "tenants", on_delete: :cascade
+  add_foreign_key "payment_intents", "users", column: "created_by_id", on_delete: :nullify
   add_foreign_key "refresh_tokens", "users", on_delete: :cascade
   add_foreign_key "role_permissions", "permissions", on_delete: :cascade
   add_foreign_key "role_permissions", "roles", on_delete: :cascade
@@ -411,4 +479,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000013) do
   add_foreign_key "wallet_transactions", "tenants", on_delete: :cascade
   add_foreign_key "wallet_transactions", "wallets", on_delete: :restrict
   add_foreign_key "wallets", "tenants", on_delete: :cascade
+  add_foreign_key "webhook_events", "payment_intents", on_delete: :nullify
+  add_foreign_key "webhook_events", "tenants", on_delete: :cascade
 end

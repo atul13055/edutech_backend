@@ -6,6 +6,7 @@ class StudentFeeAssignment < ApplicationRecord
   belongs_to :admission, optional: true
   belongs_to :fee_plan
   has_many :fee_payments, dependent: :restrict_with_error
+  has_many :payment_intents, dependent: :destroy
 
   def total_paid_amount
     fee_payments.where(status: "completed").sum(:amount)
