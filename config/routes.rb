@@ -26,7 +26,11 @@ Rails.application.routes.draw do
         resources :fee_plans, only: [ :index, :show, :create, :update, :destroy ] do
           resources :installments, controller: "fee_installments", only: [ :index, :show, :create, :update, :destroy ]
         end
-        resources :student_fee_assignments, only: [ :index, :show, :create ]
+        resources :student_fee_assignments, only: [ :index, :show, :create ] do
+          get :payment_summary, on: :member, to: "fee_payments#summary"
+          resources :payments, controller: "fee_payments", only: [ :index ]
+        end
+        resources :fee_payments, only: [ :index, :show, :create ]
         resource :wallet, only: [ :show ] do
           post :credit
           post :debit

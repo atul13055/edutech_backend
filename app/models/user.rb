@@ -9,6 +9,7 @@ class User < ApplicationRecord
   has_many :assigned_leads, class_name: "Lead", foreign_key: "assigned_to_id", dependent: :nullify
   has_many :lead_follow_ups, dependent: :destroy
   has_many :counseled_admissions, class_name: "Admission", foreign_key: "counselor_id", dependent: :nullify
+  has_many :collected_fee_payments, class_name: "FeePayment", foreign_key: "collected_by_id", dependent: :nullify
 
   validates :first_name, presence: true
   validates :email, presence: true, uniqueness: { case_sensitive: false },

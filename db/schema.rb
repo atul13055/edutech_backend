@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_11_000012) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_11_000013) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -109,6 +109,47 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000012) do
     t.index ["fee_plan_id"], name: "index_fee_installments_on_fee_plan_id"
     t.index ["tenant_id", "fee_plan_id"], name: "index_fee_installments_on_tenant_id_and_fee_plan_id"
     t.index ["tenant_id"], name: "index_fee_installments_on_tenant_id"
+  end
+
+  create_table "fee_payment_allocations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.decimal "amount", precision: 15, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.uuid "fee_installment_id", null: false
+    t.uuid "fee_payment_id", null: false
+    t.uuid "tenant_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["fee_installment_id"], name: "index_fee_payment_allocations_on_fee_installment_id"
+    t.index ["fee_payment_id", "fee_installment_id"], name: "idx_fee_pay_alloc_payment_installment", unique: true
+    t.index ["fee_payment_id"], name: "index_fee_payment_allocations_on_fee_payment_id"
+    t.index ["tenant_id", "fee_payment_id"], name: "idx_fee_pay_alloc_tenant_payment"
+    t.index ["tenant_id"], name: "index_fee_payment_allocations_on_tenant_id"
+  end
+
+  create_table "fee_payments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.decimal "amount", precision: 15, scale: 2, null: false
+    t.uuid "collected_by_id"
+    t.datetime "created_at", null: false
+    t.string "currency", default: "INR", null: false
+    t.string "idempotency_key", null: false
+    t.jsonb "metadata", default: {}
+    t.text "notes"
+    t.datetime "paid_at", null: false
+    t.string "payment_method", null: false
+    t.string "payment_reference"
+    t.string "request_hash"
+    t.string "status", default: "completed", null: false
+    t.uuid "student_fee_assignment_id", null: false
+    t.uuid "student_id", null: false
+    t.uuid "tenant_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["collected_by_id"], name: "index_fee_payments_on_collected_by_id"
+    t.index ["student_fee_assignment_id"], name: "index_fee_payments_on_student_fee_assignment_id"
+    t.index ["student_id"], name: "index_fee_payments_on_student_id"
+    t.index ["tenant_id", "idempotency_key"], name: "idx_fee_payments_tenant_idempotency", unique: true
+    t.index ["tenant_id", "status"], name: "idx_fee_payments_tenant_status"
+    t.index ["tenant_id", "student_fee_assignment_id"], name: "idx_fee_payments_tenant_assignment"
+    t.index ["tenant_id", "student_id"], name: "idx_fee_payments_tenant_student"
+    t.index ["tenant_id"], name: "index_fee_payments_on_tenant_id"
   end
 
   create_table "fee_plans", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -339,6 +380,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000012) do
   add_foreign_key "courses", "tenants", on_delete: :cascade
   add_foreign_key "fee_installments", "fee_plans", on_delete: :cascade
   add_foreign_key "fee_installments", "tenants", on_delete: :cascade
+  add_foreign_key "fee_payment_allocations", "fee_installments", on_delete: :restrict
+  add_foreign_key "fee_payment_allocations", "fee_payments", on_delete: :cascade
+  add_foreign_key "fee_payment_allocations", "tenants", on_delete: :cascade
+  add_foreign_key "fee_payments", "student_fee_assignments", on_delete: :restrict
+  add_foreign_key "fee_payments", "students", on_delete: :cascade
+  add_foreign_key "fee_payments", "tenants", on_delete: :cascade
+  add_foreign_key "fee_payments", "users", column: "collected_by_id", on_delete: :nullify
   add_foreign_key "fee_plans", "courses", on_delete: :nullify
   add_foreign_key "fee_plans", "tenants", on_delete: :cascade
   add_foreign_key "lead_follow_ups", "leads", on_delete: :cascade
