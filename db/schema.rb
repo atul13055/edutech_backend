@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_11_000011) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_11_000012) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -93,6 +93,40 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000011) do
     t.index ["tenant_id", "code"], name: "index_courses_on_tenant_id_and_code"
     t.index ["tenant_id", "status"], name: "index_courses_on_tenant_id_and_status"
     t.index ["tenant_id"], name: "index_courses_on_tenant_id"
+  end
+
+  create_table "fee_installments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.decimal "amount", precision: 15, scale: 2, default: "0.0", null: false
+    t.datetime "created_at", null: false
+    t.integer "due_days_offset", default: 0
+    t.uuid "fee_plan_id", null: false
+    t.integer "installment_number", null: false
+    t.string "name"
+    t.string "status", default: "active", null: false
+    t.uuid "tenant_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["fee_plan_id", "installment_number"], name: "index_fee_installments_on_plan_and_number", unique: true
+    t.index ["fee_plan_id"], name: "index_fee_installments_on_fee_plan_id"
+    t.index ["tenant_id", "fee_plan_id"], name: "index_fee_installments_on_tenant_id_and_fee_plan_id"
+    t.index ["tenant_id"], name: "index_fee_installments_on_tenant_id"
+  end
+
+  create_table "fee_plans", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "course_id"
+    t.datetime "created_at", null: false
+    t.string "currency", default: "INR", null: false
+    t.text "description"
+    t.integer "installment_count", default: 1, null: false
+    t.string "name", null: false
+    t.string "status", default: "active", null: false
+    t.uuid "tenant_id", null: false
+    t.decimal "total_amount", precision: 15, scale: 2, default: "0.0", null: false
+    t.datetime "updated_at", null: false
+    t.index ["course_id"], name: "index_fee_plans_on_course_id"
+    t.index ["tenant_id", "course_id"], name: "index_fee_plans_on_tenant_id_and_course_id"
+    t.index ["tenant_id", "name"], name: "index_fee_plans_on_tenant_id_and_name"
+    t.index ["tenant_id", "status"], name: "index_fee_plans_on_tenant_id_and_status"
+    t.index ["tenant_id"], name: "index_fee_plans_on_tenant_id"
   end
 
   create_table "lead_follow_ups", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -183,6 +217,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000011) do
     t.index ["key"], name: "index_roles_on_global_key", unique: true, where: "(tenant_id IS NULL)"
     t.index ["tenant_id", "key"], name: "index_roles_on_tenant_id_and_key", unique: true, where: "(tenant_id IS NOT NULL)"
     t.index ["tenant_id"], name: "index_roles_on_tenant_id"
+  end
+
+  create_table "student_fee_assignments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "admission_id"
+    t.datetime "assigned_at", null: false
+    t.datetime "created_at", null: false
+    t.string "currency", default: "INR", null: false
+    t.uuid "fee_plan_id", null: false
+    t.text "notes"
+    t.string "status", default: "active", null: false
+    t.uuid "student_id", null: false
+    t.uuid "tenant_id", null: false
+    t.decimal "total_amount", precision: 15, scale: 2, default: "0.0", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admission_id"], name: "index_student_fee_assignments_on_admission_id"
+    t.index ["fee_plan_id"], name: "index_student_fee_assignments_on_fee_plan_id"
+    t.index ["student_id"], name: "index_student_fee_assignments_on_student_id"
+    t.index ["tenant_id", "admission_id"], name: "idx_stu_fee_assign_tenant_admission"
+    t.index ["tenant_id", "fee_plan_id"], name: "idx_stu_fee_assign_tenant_fee_plan"
+    t.index ["tenant_id", "status"], name: "idx_stu_fee_assign_tenant_status"
+    t.index ["tenant_id", "student_id"], name: "idx_stu_fee_assign_tenant_student"
+    t.index ["tenant_id"], name: "index_student_fee_assignments_on_tenant_id"
   end
 
   create_table "students", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -281,6 +337,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000011) do
   add_foreign_key "batches", "tenants", on_delete: :cascade
   add_foreign_key "batches", "users", column: "trainer_id", on_delete: :nullify
   add_foreign_key "courses", "tenants", on_delete: :cascade
+  add_foreign_key "fee_installments", "fee_plans", on_delete: :cascade
+  add_foreign_key "fee_installments", "tenants", on_delete: :cascade
+  add_foreign_key "fee_plans", "courses", on_delete: :nullify
+  add_foreign_key "fee_plans", "tenants", on_delete: :cascade
   add_foreign_key "lead_follow_ups", "leads", on_delete: :cascade
   add_foreign_key "lead_follow_ups", "tenants", on_delete: :cascade
   add_foreign_key "lead_follow_ups", "users", on_delete: :cascade
@@ -292,6 +352,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000011) do
   add_foreign_key "role_permissions", "permissions", on_delete: :cascade
   add_foreign_key "role_permissions", "roles", on_delete: :cascade
   add_foreign_key "roles", "tenants", on_delete: :cascade
+  add_foreign_key "student_fee_assignments", "admissions", on_delete: :nullify
+  add_foreign_key "student_fee_assignments", "fee_plans", on_delete: :restrict
+  add_foreign_key "student_fee_assignments", "students", on_delete: :cascade
+  add_foreign_key "student_fee_assignments", "tenants", on_delete: :cascade
   add_foreign_key "students", "tenants", on_delete: :cascade
   add_foreign_key "students", "users", on_delete: :nullify
   add_foreign_key "users", "roles", on_delete: :restrict

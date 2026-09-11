@@ -23,6 +23,10 @@ Rails.application.routes.draw do
           resources :follow_ups, controller: "lead_follow_ups", only: [ :index, :show, :create, :update, :destroy ]
         end
         resources :admissions, only: [ :index, :show, :create, :update, :destroy ]
+        resources :fee_plans, only: [ :index, :show, :create, :update, :destroy ] do
+          resources :installments, controller: "fee_installments", only: [ :index, :show, :create, :update, :destroy ]
+        end
+        resources :student_fee_assignments, only: [ :index, :show, :create ]
         resource :wallet, only: [ :show ] do
           post :credit
           post :debit
