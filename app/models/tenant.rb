@@ -5,6 +5,9 @@ class Tenant < ApplicationRecord
   has_many :courses, dependent: :destroy
   has_many :batches, dependent: :destroy
   has_many :batch_schedules, dependent: :destroy
+  has_many :leads, dependent: :destroy
+  has_many :lead_follow_ups, dependent: :destroy
+  has_many :admissions, dependent: :destroy
   has_one :wallet, dependent: :destroy
   has_many :wallet_transactions, dependent: :destroy
 
