@@ -1,24 +1,67 @@
-# README
+# Edutech Backend API
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+`edtech_api` is a robust, multi-tenant Educational Technology backend built with Ruby on Rails 8.
 
-Things you may want to cover:
+## Technology Stack & Architecture
+- **Framework**: Ruby on Rails 8.1.3.1 (API mode)
+- **Ruby Version**: 3.4.1
+- **Database**: PostgreSQL with UUID primary keys (`gen_random_uuid()`)
+- **Multi-Tenancy**: `acts_as_tenant` with strict tenant isolation and `Current.tenant` request scoping
+- **Authentication**: JWT access tokens with rotation-capable `RefreshToken` digests
+- **Authorization**: Fail-closed Pundit policies (`verify_authorized` enforced)
+- **Serialization**: Blueprinter serializers
+- **Financial Ledger**: Immutability-enforced append-only `Wallet` & `WalletTransaction` architecture
 
-* Ruby version
+## Getting Started
 
-* System dependencies
+### Prerequisites
+- Ruby 3.4.1
+- PostgreSQL 14+
+- Bundler
 
-* Configuration
+### Setup Instructions
+1. Install dependencies:
+   ```bash
+   bundle install
+   ```
 
-* Database creation
+2. Setup Database & Run Seeds:
+   ```bash
+   bin/rails db:prepare
+   bin/rails db:seed
+   ```
 
-* Database initialization
+3. Start Development Server:
+   ```bash
+   bin/rails server
+   ```
 
-* How to run the test suite
+## Running Verification & Tests
 
-* Services (job queues, cache servers, search engines, etc.)
+### Test Suite
+Run the Minitest suite:
+```bash
+bin/rails test
+```
 
-* Deployment instructions
+### Static Analysis & Security Audits
+Run RuboCop linting:
+```bash
+bundle exec rubocop
+```
 
-* ...
+Run Brakeman security analyzer:
+```bash
+bundle exec brakeman
+```
+
+Run Zeitwerk eager loading verification:
+```bash
+bin/rails zeitwerk:check
+```
+
+## API Modules & Architecture Slices
+- **Phase-1**: Multi-tenant database foundation, authentication, users, roles, permissions, system seeds.
+- **Phase-2 Slice-1**: Tenant & Franchise Management domain.
+- **Phase-2 Slice-2**: Wallet & Immutable Financial Ledger.
+- **Phase-2 Slice-3**: Student Management domain.
