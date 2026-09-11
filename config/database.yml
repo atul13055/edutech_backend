@@ -1,0 +1,44 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  host: 127.0.0.1
+  username: postgres
+  password: 12345678
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  idle_timeout: <%= ENV["RAILS_IDLE_CONNECTION"] ||  60 %>
+  port: <%= ENV['RAILS_DATABASE_PORT'] || 5432 %>
+
+development:
+  <<: *default
+  database: <%= ENV['TEMPLATEAPP_DATABASE'] || "edutech" %>
+  username: <%= ENV['TEMPLATEAPP_DATABASE_USER'] || "postgres" %>
+  password: <%= ENV['TEMPLATEAPP_DATABASE_PASSWORD']|| "12345678" %>
+  host: <%= ENV['TEMPLATE_DATABASE_HOSTNAME'] || "localhost" %>
+  port: 5432
+
+test:
+  <<: *default
+  database: <%= ENV['TEMPLATEAPP_DATABASE'] || "edutech_test" %>
+  username: <%= ENV['TEMPLATEAPP_DATABASE_USER'] || "postgres" %>
+  password: <%= ENV['TEMPLATEAPP_DATABASE_PASSWORD']|| "12345678" %>
+  host: <%= ENV['TEMPLATE_DATABASE_HOSTNAME'] || "localhost" %>
+  port: 5432
+
+production:
+  primary: &primary_production
+    <<: *default
+    database: qcut_backend_production
+    username: qcut_backend
+    password: <%= ENV["QCUT_BACKEND_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: qcut_backend_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: qcut_backend_production_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *primary_production
+    database: qcut_backend_production_cable
+    migrations_paths: db/cable_migrate
