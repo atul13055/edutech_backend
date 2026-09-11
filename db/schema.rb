@@ -10,11 +10,48 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_11_000009) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_11_000010) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
   enable_extension "uuid-ossp"
+
+  create_table "batch_schedules", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "batch_id", null: false
+    t.datetime "created_at", null: false
+    t.string "end_time", null: false
+    t.string "room_name"
+    t.string "start_time", null: false
+    t.uuid "tenant_id", null: false
+    t.datetime "updated_at", null: false
+    t.integer "weekday", null: false
+    t.index ["batch_id", "weekday"], name: "index_batch_schedules_on_batch_id_and_weekday"
+    t.index ["batch_id"], name: "index_batch_schedules_on_batch_id"
+    t.index ["tenant_id", "batch_id"], name: "index_batch_schedules_on_tenant_id_and_batch_id"
+    t.index ["tenant_id"], name: "index_batch_schedules_on_tenant_id"
+  end
+
+  create_table "batches", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.integer "capacity", default: 30, null: false
+    t.string "code", null: false
+    t.uuid "course_id", null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.date "end_date"
+    t.string "name", null: false
+    t.date "start_date", null: false
+    t.string "status", default: "upcoming", null: false
+    t.uuid "tenant_id", null: false
+    t.uuid "trainer_id"
+    t.datetime "updated_at", null: false
+    t.index ["course_id"], name: "index_batches_on_course_id"
+    t.index ["tenant_id", "code"], name: "index_batches_on_tenant_id_and_code", unique: true
+    t.index ["tenant_id", "course_id"], name: "index_batches_on_tenant_id_and_course_id"
+    t.index ["tenant_id", "status"], name: "index_batches_on_tenant_id_and_status"
+    t.index ["tenant_id", "trainer_id"], name: "index_batches_on_tenant_id_and_trainer_id"
+    t.index ["tenant_id"], name: "index_batches_on_tenant_id"
+    t.index ["trainer_id"], name: "index_batches_on_trainer_id"
+  end
 
   create_table "courses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.decimal "base_fee", precision: 12, scale: 2, default: "0.0", null: false
@@ -163,6 +200,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000009) do
     t.check_constraint "balance >= 0::numeric", name: "wallets_balance_non_negative"
   end
 
+  add_foreign_key "batch_schedules", "batches", on_delete: :cascade
+  add_foreign_key "batch_schedules", "tenants", on_delete: :cascade
+  add_foreign_key "batches", "courses", on_delete: :cascade
+  add_foreign_key "batches", "tenants", on_delete: :cascade
+  add_foreign_key "batches", "users", column: "trainer_id", on_delete: :nullify
   add_foreign_key "courses", "tenants", on_delete: :cascade
   add_foreign_key "refresh_tokens", "users", on_delete: :cascade
   add_foreign_key "role_permissions", "permissions", on_delete: :cascade

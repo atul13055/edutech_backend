@@ -5,6 +5,7 @@ class User < ApplicationRecord
   belongs_to :role
   has_many :permissions, through: :role
   has_many :refresh_tokens, dependent: :destroy
+  has_many :trained_batches, class_name: "Batch", foreign_key: "trainer_id", dependent: :nullify
 
   validates :first_name, presence: true
   validates :email, presence: true, uniqueness: { case_sensitive: false },

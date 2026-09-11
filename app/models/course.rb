@@ -3,6 +3,8 @@ class Course < ApplicationRecord
 
   belongs_to :tenant, optional: true
 
+  has_many :batches, dependent: :restrict_with_error
+
   before_validation :normalize_attributes
 
   validates :name, presence: true, length: { maximum: 255 }
