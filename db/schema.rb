@@ -10,11 +10,37 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_11_000010) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_11_000011) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
   enable_extension "uuid-ossp"
+
+  create_table "admissions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.date "admission_date", null: false
+    t.string "admission_number", null: false
+    t.uuid "batch_id"
+    t.uuid "counselor_id"
+    t.uuid "course_id", null: false
+    t.datetime "created_at", null: false
+    t.uuid "lead_id"
+    t.text "notes"
+    t.string "status", default: "applied", null: false
+    t.uuid "student_id", null: false
+    t.uuid "tenant_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["batch_id"], name: "index_admissions_on_batch_id"
+    t.index ["counselor_id"], name: "index_admissions_on_counselor_id"
+    t.index ["course_id"], name: "index_admissions_on_course_id"
+    t.index ["lead_id"], name: "index_admissions_on_lead_id"
+    t.index ["student_id"], name: "index_admissions_on_student_id"
+    t.index ["tenant_id", "admission_number"], name: "index_admissions_on_tenant_id_and_admission_number", unique: true
+    t.index ["tenant_id", "batch_id"], name: "index_admissions_on_tenant_id_and_batch_id"
+    t.index ["tenant_id", "course_id"], name: "index_admissions_on_tenant_id_and_course_id"
+    t.index ["tenant_id", "status"], name: "index_admissions_on_tenant_id_and_status"
+    t.index ["tenant_id", "student_id"], name: "index_admissions_on_tenant_id_and_student_id"
+    t.index ["tenant_id"], name: "index_admissions_on_tenant_id"
+  end
 
   create_table "batch_schedules", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "batch_id", null: false
@@ -67,6 +93,49 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000010) do
     t.index ["tenant_id", "code"], name: "index_courses_on_tenant_id_and_code"
     t.index ["tenant_id", "status"], name: "index_courses_on_tenant_id_and_status"
     t.index ["tenant_id"], name: "index_courses_on_tenant_id"
+  end
+
+  create_table "lead_follow_ups", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "follow_up_at", null: false
+    t.uuid "lead_id", null: false
+    t.text "notes"
+    t.string "outcome"
+    t.string "status", default: "pending", null: false
+    t.uuid "tenant_id", null: false
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["lead_id"], name: "index_lead_follow_ups_on_lead_id"
+    t.index ["tenant_id", "lead_id"], name: "index_lead_follow_ups_on_tenant_id_and_lead_id"
+    t.index ["tenant_id", "status"], name: "index_lead_follow_ups_on_tenant_id_and_status"
+    t.index ["tenant_id", "user_id"], name: "index_lead_follow_ups_on_tenant_id_and_user_id"
+    t.index ["tenant_id"], name: "index_lead_follow_ups_on_tenant_id"
+    t.index ["user_id"], name: "index_lead_follow_ups_on_user_id"
+  end
+
+  create_table "leads", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "assigned_to_id"
+    t.datetime "created_at", null: false
+    t.string "email"
+    t.uuid "interested_batch_id"
+    t.uuid "interested_course_id"
+    t.string "name", null: false
+    t.datetime "next_follow_up_at"
+    t.text "notes"
+    t.string "phone"
+    t.string "source", default: "walk_in"
+    t.string "status", default: "new", null: false
+    t.uuid "tenant_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["assigned_to_id"], name: "index_leads_on_assigned_to_id"
+    t.index ["interested_batch_id"], name: "index_leads_on_interested_batch_id"
+    t.index ["interested_course_id"], name: "index_leads_on_interested_course_id"
+    t.index ["tenant_id", "assigned_to_id"], name: "index_leads_on_tenant_id_and_assigned_to_id"
+    t.index ["tenant_id", "interested_batch_id"], name: "index_leads_on_tenant_id_and_interested_batch_id"
+    t.index ["tenant_id", "interested_course_id"], name: "index_leads_on_tenant_id_and_interested_course_id"
+    t.index ["tenant_id", "status"], name: "index_leads_on_tenant_id_and_status"
+    t.index ["tenant_id"], name: "index_leads_on_tenant_id"
   end
 
   create_table "permissions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -200,12 +269,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000010) do
     t.check_constraint "balance >= 0::numeric", name: "wallets_balance_non_negative"
   end
 
+  add_foreign_key "admissions", "batches", on_delete: :nullify
+  add_foreign_key "admissions", "courses", on_delete: :cascade
+  add_foreign_key "admissions", "leads", on_delete: :nullify
+  add_foreign_key "admissions", "students", on_delete: :cascade
+  add_foreign_key "admissions", "tenants", on_delete: :cascade
+  add_foreign_key "admissions", "users", column: "counselor_id", on_delete: :nullify
   add_foreign_key "batch_schedules", "batches", on_delete: :cascade
   add_foreign_key "batch_schedules", "tenants", on_delete: :cascade
   add_foreign_key "batches", "courses", on_delete: :cascade
   add_foreign_key "batches", "tenants", on_delete: :cascade
   add_foreign_key "batches", "users", column: "trainer_id", on_delete: :nullify
   add_foreign_key "courses", "tenants", on_delete: :cascade
+  add_foreign_key "lead_follow_ups", "leads", on_delete: :cascade
+  add_foreign_key "lead_follow_ups", "tenants", on_delete: :cascade
+  add_foreign_key "lead_follow_ups", "users", on_delete: :cascade
+  add_foreign_key "leads", "batches", column: "interested_batch_id", on_delete: :nullify
+  add_foreign_key "leads", "courses", column: "interested_course_id", on_delete: :nullify
+  add_foreign_key "leads", "tenants", on_delete: :cascade
+  add_foreign_key "leads", "users", column: "assigned_to_id", on_delete: :nullify
   add_foreign_key "refresh_tokens", "users", on_delete: :cascade
   add_foreign_key "role_permissions", "permissions", on_delete: :cascade
   add_foreign_key "role_permissions", "roles", on_delete: :cascade

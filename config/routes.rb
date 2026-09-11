@@ -18,6 +18,11 @@ Rails.application.routes.draw do
         resources :batches, only: [ :index, :show, :create, :update, :destroy ] do
           resources :schedules, controller: "batch_schedules", only: [ :index, :show, :create, :update, :destroy ]
         end
+        resources :leads, only: [ :index, :show, :create, :update, :destroy ] do
+          post :convert, on: :member
+          resources :follow_ups, controller: "lead_follow_ups", only: [ :index, :show, :create, :update, :destroy ]
+        end
+        resources :admissions, only: [ :index, :show, :create, :update, :destroy ]
         resource :wallet, only: [ :show ] do
           post :credit
           post :debit

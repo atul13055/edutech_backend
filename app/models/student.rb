@@ -3,6 +3,7 @@ class Student < ApplicationRecord
 
   belongs_to :tenant
   belongs_to :user, optional: true
+  has_many :admissions, dependent: :destroy
 
   before_validation :normalize_attributes
 
