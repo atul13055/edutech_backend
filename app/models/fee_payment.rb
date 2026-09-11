@@ -10,6 +10,7 @@ class FeePayment < ApplicationRecord
   belongs_to :collected_by, class_name: "User", optional: true
 
   has_many :fee_payment_allocations, dependent: :destroy
+  has_one :payment_intent, dependent: :nullify
 
   before_validation :normalize_attributes
 
