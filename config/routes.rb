@@ -14,6 +14,7 @@ Rails.application.routes.draw do
 
       namespace :admin do
         resources :students, only: [ :index, :show, :create, :update, :destroy ]
+        resources :courses, only: [ :index, :show, :create, :update, :destroy ]
         resource :wallet, only: [ :show ] do
           post :credit
           post :debit

@@ -10,11 +10,27 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_11_000008) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_11_000009) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
   enable_extension "uuid-ossp"
+
+  create_table "courses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.decimal "base_fee", precision: 12, scale: 2, default: "0.0", null: false
+    t.string "code", null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.integer "duration_months", default: 1, null: false
+    t.string "name", null: false
+    t.string "status", default: "active", null: false
+    t.uuid "tenant_id"
+    t.datetime "updated_at", null: false
+    t.index ["status"], name: "index_courses_on_status"
+    t.index ["tenant_id", "code"], name: "index_courses_on_tenant_id_and_code"
+    t.index ["tenant_id", "status"], name: "index_courses_on_tenant_id_and_status"
+    t.index ["tenant_id"], name: "index_courses_on_tenant_id"
+  end
 
   create_table "permissions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -147,6 +163,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000008) do
     t.check_constraint "balance >= 0::numeric", name: "wallets_balance_non_negative"
   end
 
+  add_foreign_key "courses", "tenants", on_delete: :cascade
   add_foreign_key "refresh_tokens", "users", on_delete: :cascade
   add_foreign_key "role_permissions", "permissions", on_delete: :cascade
   add_foreign_key "role_permissions", "roles", on_delete: :cascade
