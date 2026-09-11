@@ -10,6 +10,8 @@ module ErrorHandler
     rescue_from ActionController::BadRequest, with: :handle_bad_request
     rescue_from "WalletManagement::InsufficientBalanceError", with: :handle_unprocessable_entity
     rescue_from "WalletManagement::InvalidAmountError", with: :handle_unprocessable_entity
+    rescue_from "Fees::PaymentCollectionService::IdempotencyConflictError", with: :handle_conflict
+    rescue_from "Fees::PaymentCollectionService::Error", with: :handle_unprocessable_entity
   end
 
   private
@@ -36,5 +38,9 @@ module ErrorHandler
 
   def handle_unprocessable_entity(exception)
     render_error(errors: [ exception.message ], status: :unprocessable_entity)
+  end
+
+  def handle_conflict(exception)
+    render_error(errors: [ exception.message ], status: :conflict)
   end
 end

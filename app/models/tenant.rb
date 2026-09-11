@@ -11,6 +11,8 @@ class Tenant < ApplicationRecord
   has_many :fee_plans, dependent: :destroy
   has_many :fee_installments, dependent: :destroy
   has_many :student_fee_assignments, dependent: :destroy
+  has_many :fee_payments, dependent: :destroy
+  has_many :fee_payment_allocations, dependent: :destroy
   has_one :wallet, dependent: :destroy
   has_many :wallet_transactions, dependent: :destroy
 

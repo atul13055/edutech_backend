@@ -5,6 +5,15 @@ class StudentFeeAssignment < ApplicationRecord
   belongs_to :student
   belongs_to :admission, optional: true
   belongs_to :fee_plan
+  has_many :fee_payments, dependent: :restrict_with_error
+
+  def total_paid_amount
+    fee_payments.where(status: "completed").sum(:amount)
+  end
+
+  def outstanding_amount
+    [ total_amount - total_paid_amount, BigDecimal("0.0") ].max
+  end
 
   before_validation :copy_fee_plan_snapshot, on: :create
   before_validation :normalize_attributes
