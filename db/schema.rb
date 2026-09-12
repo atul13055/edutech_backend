@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_12_000015) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_12_000016) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -146,6 +146,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_000015) do
     t.index ["student_fee_assignment_id"], name: "index_fee_payments_on_student_fee_assignment_id"
     t.index ["student_id"], name: "index_fee_payments_on_student_id"
     t.index ["tenant_id", "idempotency_key"], name: "idx_fee_payments_tenant_idempotency", unique: true
+    t.index ["tenant_id", "paid_at"], name: "idx_fee_payments_tenant_paid_at"
     t.index ["tenant_id", "status"], name: "idx_fee_payments_tenant_status"
     t.index ["tenant_id", "student_fee_assignment_id"], name: "idx_fee_payments_tenant_assignment"
     t.index ["tenant_id", "student_id"], name: "idx_fee_payments_tenant_student"
@@ -248,6 +249,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_000015) do
     t.index ["provider_name", "provider_transaction_id"], name: "idx_payment_intents_provider_tx"
     t.index ["student_fee_assignment_id"], name: "index_payment_intents_on_student_fee_assignment_id"
     t.index ["student_id"], name: "index_payment_intents_on_student_id"
+    t.index ["tenant_id", "created_at"], name: "idx_payment_intents_tenant_created_at"
     t.index ["tenant_id", "idempotency_key"], name: "idx_payment_intents_tenant_idempotency", unique: true
     t.index ["tenant_id", "status"], name: "idx_payment_intents_tenant_status"
     t.index ["tenant_id", "student_fee_assignment_id"], name: "idx_payment_intents_tenant_assignment"
@@ -285,6 +287,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_000015) do
     t.index ["requested_by_id"], name: "index_payment_refunds_on_requested_by_id"
     t.index ["student_fee_assignment_id"], name: "index_payment_refunds_on_student_fee_assignment_id"
     t.index ["student_id"], name: "index_payment_refunds_on_student_id"
+    t.index ["tenant_id", "completed_at"], name: "idx_payment_refunds_tenant_completed_at"
     t.index ["tenant_id", "fee_payment_id"], name: "idx_payment_refunds_tenant_payment"
     t.index ["tenant_id", "idempotency_key"], name: "idx_payment_refunds_tenant_idempotency", unique: true
     t.index ["tenant_id", "status"], name: "idx_payment_refunds_tenant_status"

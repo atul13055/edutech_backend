@@ -43,6 +43,16 @@ Rails.application.routes.draw do
           post :debit
           resources :transactions, controller: "wallet_transactions", only: [ :index, :show ]
         end
+        scope "finance/reports", controller: "finance_reports" do
+          get :collection_summary
+          get :payment_methods
+          get :outstanding_fees
+          get :student_ledger
+          get :refunds
+          get :payment_intents
+          get :daily_collection
+          get :settlement_summary
+        end
       end
 
       post "webhooks/payments", to: "webhooks#receive"
