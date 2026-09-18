@@ -52,7 +52,7 @@ end
 gem "acts_as_tenant", "~> 1.0"
 
 gem "bcrypt", "~> 3.1.7"
-gem "jwt", "~> 2.7"
+gem "jwt", "~> 3.3"
 gem "blueprinter", ">= 1.3"
 gem "pundit", "~> 2.5"
 
