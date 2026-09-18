@@ -68,4 +68,4 @@ gem "dotenv-rails", "~> 3.2", groups: [ :development, :test ]
 
 # Pin json gem below 3.0 — json 3.0.x broke JSON.parse(str, opts) used internally
 # by ActiveRecord::Type::Json for jsonb columns (Rails 8.1 + json 3.0.x incompatibility)
-gem "json", "< 3.0"
+gem "json", "< 4.0"
