@@ -49,7 +49,7 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 end
 
-gem "acts_as_tenant", "~> 1.0"
+gem "acts_as_tenant", "~> 2.0"
 
 gem "bcrypt", "~> 3.1.7"
 gem "jwt", "~> 2.7"
