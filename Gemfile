@@ -60,7 +60,7 @@ gem "rack-cors", "~> 3.0"
 
 gem "sidekiq", "~> 8.1"
 
-gem "grover", "~> 1.2"
+gem "grover", "~> 2.0"
 
 gem "rqrcode", "~> 3.2"
 
